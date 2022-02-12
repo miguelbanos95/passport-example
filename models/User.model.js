@@ -22,6 +22,25 @@ const userSchema = new mongoose.Schema({
     required: 'password is required',
     match: [PASSWORD_PATTERN, 'password needs at least 8 chars'],
   },
+  googleID: {
+    type: String
+  },
+  image: {
+    type: String
+  },
+  activationToken: {
+    type: String,
+    default: () => {
+      return Math.random().toString(36).substring(7) +
+      Math.random().toString(36).substring(7) +
+      Math.random().toString(36).substring(7) +
+      Math.random().toString(36).substring(7)
+    }
+  },
+  active: {
+    type: Boolean,
+    default: false
+  },
 });
 
 userSchema.pre('save', function(next) {

@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const passport = require('passport');
 const User = require('../models/User.model');
+const mailer = require("../config/mailer.config");
 
 module.exports.register = (req, res, next) => {
   res.render('auth/register')
@@ -23,8 +24,12 @@ module.exports.doRegister = (req, res, next) => {
       if (userFound) {
         renderWithErrors({ email: 'Email already in use' })
       } else {
+        if (req.file) {
+          user.image = req.file.path
+        }
         return User.create(user)
-          .then(() => {
+          .then((createdUser) => {
+            mailer.sendActivationMail(createdUser.email, createdUser.activationToken);
             res.redirect('/login')
           })
 
@@ -39,8 +44,8 @@ module.exports.doRegister = (req, res, next) => {
     })
 }
 
-module.exports.doLogin = (req, res, next) => {
-  passport.authenticate('local-auth', (err, user, validations) => {
+const login = (req, res, next, provider) => {
+  passport.authenticate(provider || 'local-auth', (err, user, validations) => {
     if (err) {
       next(err)
     } else if(!user) {
@@ -55,6 +60,14 @@ module.exports.doLogin = (req, res, next) => {
       })
     }
   })(req, res, next)
+}
+
+module.exports.doLogin = (req, res, next) => {
+  login(req, res, next)
+}
+
+module.exports.doLoginGoogle = (req, res, next) => {
+  login(req, res, next, 'google-auth')
 }
 
 module.exports.logout = (req, res, next) => {
