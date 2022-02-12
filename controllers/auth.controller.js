@@ -39,14 +39,17 @@ module.exports.doRegister = (req, res, next) => {
     })
 }
 
-module.exports.doLogin = (req, res, next) => {
-  passport.authenticate('local-auth', (err, user, validations) => {
+// Funcion Login
+
+const doLogin = (req, res, next, provider = 'local-auth') => {
+  passport.authenticate(provider, (err, user, validations) => {
     if (err) {
       next(err)
     } else if(!user) {
       res.status(404).render('auth/login', { errorMessage: validations.error })
     } else {
       req.login(user, (loginError) => {
+        console.log({user});
         if (loginError) {
           next(loginError)
         } else {
@@ -55,6 +58,14 @@ module.exports.doLogin = (req, res, next) => {
       })
     }
   })(req, res, next)
+}
+
+module.exports.doLogin = (req, res, next) => {
+  doLogin(req, res, next)
+}
+
+module.exports.doLoginGoogle = (req, res, next) => {
+  doLogin(req, res, next, 'google-auth')
 }
 
 module.exports.logout = (req, res, next) => {
